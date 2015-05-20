@@ -17,6 +17,10 @@ package org.terasology.tutorialWorldGeneration;
 
 import org.terasology.math.Rect2i;
 import org.terasology.math.Vector2i;
+import org.terasology.math.geom.Vector2f;
+import org.terasology.utilities.procedural.Noise;
+import org.terasology.utilities.procedural.SimplexNoise;
+import org.terasology.utilities.procedural.SubSampledNoise;
 import org.terasology.world.generation.Border3D;
 import org.terasology.world.generation.FacetProvider;
 import org.terasology.world.generation.GeneratingRegion;
@@ -25,8 +29,11 @@ import org.terasology.world.generation.facets.SurfaceHeightFacet;
 
 @Produces(SurfaceHeightFacet.class)
 public class SurfaceProvider implements FacetProvider {
+    private Noise surfaceNoise;
+
     @Override
     public void setSeed(long seed) {
+        surfaceNoise = new SubSampledNoise(new SimplexNoise(seed), new Vector2f(0.01f, 0.01f), 1);
     }
 
     @Override
@@ -38,7 +45,7 @@ public class SurfaceProvider implements FacetProvider {
         // loop through every position on our 2d array
         Rect2i processRegion = facet.getWorldRegion();
         for (Vector2i position : processRegion) {
-            facet.setWorld(position, 10f);
+            facet.setWorld(position, surfaceNoise.noise(position.x, position.y) * 20);
         }
 
         // give our newly created and populated facet to the region
